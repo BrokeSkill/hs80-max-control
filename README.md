@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="src/Hs80.App/Assets/app_banner.png" alt="HS80 MAX Control" width="96"/>
+  <img src="Hs80.App/Assets/app_banner.png" alt="HS80 MAX Control" width="96"/>
 </p>
 
 <p align="center">
@@ -16,7 +16,7 @@ A lightweight Windows desktop app for the Corsair HS80 MAX wireless headset. No 
 
 - **LED control** - set independent colors for the earcups and the mic tip, with brightness. (The last applied color is restored on launch and re-asserted automatically when the headset reconnects after standby.)
 - **Event warnings** - pick any of the headset's own firmware sounds (all 46 voice prompts and tones, dumped live from the device) and bind them to events: battery low/critical, charging started/complete, headset connect/disconnect, mic mute/unmute. Per-event volume, custom WAV/MP3 files, tray toasts, and LED color reactions are all available.
-- **Battery card** - live percentage from the headset meter, charge state, ETA until drained or full (linear fit over persisted history, may be inaccurate)
+- **Battery card** - live percentage from the headset meter, charge state, ETA until drained or full (rolling 30-minute fit over measured history, self-calibrating)
 - **Now playing** - title, artist, album, and thumbnail from the Windows media session, read-only.
 - **System tray** - minimize/close to tray so warnings keep working; tray icon reflects charge level; quick LED on/off from the tray menu.
 - **Start with Windows** - optional, via a plain HKCU Run key. No admin needed.
@@ -38,6 +38,10 @@ The app speaks the dongle's HID control protocol directly (iface 4, usage page 0
 ## Building
 
 Requires .NET 10 SDK on Windows:
+
+    git clone https://github.com/BrokeSkill/hs80-max-control
+
+    cd hs80-max-control
 
     dotnet publish Hs80.App/Hs80.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
 
