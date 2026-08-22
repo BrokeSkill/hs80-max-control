@@ -1,0 +1,471 @@
+<Window x:Class="Hs80.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:Hs80.App.Controls"
+        Title="HS80 MAX Control"
+        Width="1280"
+        Height="800"
+        MinWidth="1150"
+        MinHeight="660"
+        Icon="/Assets/app.ico"
+        WindowStyle="None"
+        ResizeMode="CanResizeWithGrip"
+        Background="{StaticResource BgBrush}"
+        FontFamily="Segoe UI"
+        UseLayoutRounding="True"
+        WindowStartupLocation="CenterScreen"
+        Closing="OnClosing">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="36"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Background="{StaticResource CardBrush}"
+                BorderBrush="{StaticResource HairlineBrush}"
+                BorderThickness="0,0,0,1"
+                MouseLeftButtonDown="OnTitleBarDrag">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <Image Source="/Assets/app.ico" Width="18" Height="18"/>
+                    <TextBlock Text="HS80 MAX Control"
+                               Style="{StaticResource Label}"
+                               Foreground="{StaticResource TextBrush}"
+                               FontWeight="SemiBold"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Content="&#x2013;"
+                            Style="{StaticResource TitleBarButton}"
+                            Click="OnMinimizeClick"
+                            ToolTip="Minimize"/>
+                    <Button Content="&#x2715;"
+                            Style="{StaticResource TitleBarButton}"
+                            Click="OnCloseClick"
+                            ToolTip="Close"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="320"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="380"/>
+            </Grid.ColumnDefinitions>
+
+        <Border Style="{StaticResource Card}" Grid.Column="0">
+            <StackPanel Margin="18">
+                <TextBlock Text="LED control" Style="{StaticResource SectionTitle}"/>
+
+                <TextBlock Text="Earcups &#xB7; LED0" Style="{StaticResource Label}" Margin="0,0,0,4"/>
+                <local:ColorPicker x:Name="EarcupsPicker"/>
+
+                <TextBlock Text="Mic tip &#xB7; LED1" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+                <local:ColorPicker x:Name="MicPicker"/>
+
+                <TextBlock Text="Brightness" Style="{StaticResource Label}" Margin="0,14,0,4"/>
+                <DockPanel>
+                    <TextBlock x:Name="BrightnessValue"
+                               DockPanel.Dock="Right"
+                               Text="500"
+                               Style="{StaticResource Label}"
+                               Margin="8,0,0,0"
+                               VerticalAlignment="Center"/>
+                    <Slider x:Name="BrightnessSlider"
+                            Minimum="0"
+                            Maximum="1000"
+                            Value="500"
+                            Style="{StaticResource DarkSlider}"
+                            ValueChanged="OnBrightnessValue"
+                            Thumb.DragCompleted="OnBrightnessDrag"
+                            VerticalAlignment="Center"/>
+                </DockPanel>
+
+                <Grid Margin="0,16,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0"
+                            Content="Apply"
+                            Style="{StaticResource AccentButton}"
+                            HorizontalAlignment="Stretch"
+                            Click="OnApplyClick"/>
+                    <TextBlock x:Name="ApplyStatus"
+                               Grid.Column="1"
+                               Text=""
+                               Style="{StaticResource MicroLabel}"
+                               Foreground="{StaticResource AccentBrush}"
+                               Margin="10,0,0,0"
+                               VerticalAlignment="Center"
+                               Typography.NumeralStyle="Lining"/>
+                </Grid>
+
+                <Border Height="1" Background="{StaticResource HairlineBrush}" Margin="0,18,0,18"/>
+
+                <TextBlock Text="Credits"
+                           Style="{StaticResource Label}"
+                           Margin="0,0,0,4"/>
+                <TextBlock Style="{StaticResource MicroLabel}"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource TextMuteBrush}">
+                    <Run Text="Protocol reverse engineered by "/>
+                    <Hyperlink NavigateUri="https://github.com/ToastKiste21/corsair-hs80-max-re"
+                               RequestNavigate="OnLinkClick"
+                               Foreground="{StaticResource AccentBrush}">
+                        <Run Text="ToastKiste21 (corsair-hs80-max-re, MIT)"/>
+                    </Hyperlink>
+                    <LineBreak/>
+                    <Run Text="Interface built by "/>
+                    <Hyperlink NavigateUri="https://github.com/BrokeSkill"
+                               RequestNavigate="OnLinkClick"
+                               Foreground="{StaticResource AccentBrush}">
+                        <Run Text="BrokeSkill."/>
+                    </Hyperlink>
+                </TextBlock>
+            </StackPanel>
+        </Border>
+
+        <StackPanel Grid.Column="1" Margin="12,0">
+
+            <Border Style="{StaticResource Card}" Padding="18,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,26,0">
+                        <Ellipse x:Name="LinkDot" Style="{StaticResource Dot}" Fill="{StaticResource TextMuteBrush}"/>
+                        <TextBlock Text="LINK" Style="{StaticResource Label}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="LinkText"
+                                   Text="--"
+                                   Style="{StaticResource Label}"
+                                   Foreground="{StaticResource TextBrush}"
+                                   Margin="8,0,0,0"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Ellipse x:Name="MicDot" Style="{StaticResource Dot}" Fill="{StaticResource TextMuteBrush}"/>
+                        <TextBlock Text="MIC" Style="{StaticResource Label}" Margin="8,0,0,0" VerticalAlignment="Center"/>
+                        <TextBlock x:Name="MicText"
+                                   Text="--"
+                                   Style="{StaticResource Label}"
+                                   Foreground="{StaticResource TextBrush}"
+                                   Margin="8,0,0,0"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock x:Name="DevStateText"
+                               Grid.Column="2"
+                               Text=""
+                               Style="{StaticResource MicroLabel}"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <Grid Margin="20,18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock x:Name="BatteryPercent"
+                                   Text="--%"
+                                   Style="{StaticResource BatteryValue}"/>
+                        <TextBlock x:Name="ChargeState"
+                                   Text="--"
+                                   Style="{StaticResource Label}"
+                                   Foreground="{StaticResource TextDimBrush}"
+                                   Margin="0,2,0,0"/>
+                        <TextBlock x:Name="EtaText"
+                                   Text="ETA --"
+                                   Style="{StaticResource Label}"
+                                   Margin="0,6,0,0"/>
+                    </StackPanel>
+                    <Grid Grid.Column="1" Height="72" Margin="26,0,0,0" VerticalAlignment="Bottom">
+                        <Polyline x:Name="SparklinePath"
+                                  Stroke="{StaticResource AccentBrush}"
+                                  StrokeThickness="1.5"
+                                  Stretch="Fill"/>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <Grid Margin="18">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Grid.Column="0"
+                            Width="64"
+                            Height="64"
+                            CornerRadius="8"
+                            Background="{StaticResource CardAltBrush}"
+                            BorderBrush="{StaticResource HairlineBrush}"
+                            BorderThickness="1"
+                            VerticalAlignment="Center">
+                        <Grid>
+                            <Image x:Name="ThumbImage"
+                                   Stretch="UniformToFill"
+                                   Visibility="Collapsed"/>
+                            <TextBlock x:Name="ThumbFallback"
+                                       Text="&#x266A;"
+                                       FontSize="24"
+                                       Foreground="{StaticResource TextMuteBrush}"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                        <TextBlock x:Name="NowTitle"
+                                   Text="Nothing playing"
+                                   Style="{StaticResource ValueText}"
+                                   FontSize="15"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="NowArtist"
+                                   Text="Waiting for a media session"
+                                   Style="{StaticResource Label}"
+                                   Margin="0,4,0,0"
+                                   TextTrimming="CharacterEllipsis"/>
+                        <TextBlock x:Name="NowAlbum"
+                                   Text=""
+                                   Style="{StaticResource MicroLabel}"
+                                   Margin="0,2,0,0"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Style="{StaticResource Card}" Margin="0,12,0,0">
+                <Grid Margin="18">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock Grid.Row="0" Text="Developer" Style="{StaticResource SectionTitle}"/>
+                    <CheckBox Grid.Row="1"
+                              x:Name="StartupCheck"
+                              Content="Start with Windows"
+                              Style="{StaticResource DarkCheckBox}"
+                              Margin="0,10,0,0"
+                              Checked="OnStartupToggle"
+                              Unchecked="OnStartupToggle"/>
+                    <CheckBox Grid.Row="2"
+                              x:Name="HttpToggle"
+                              Content="Loopback HTTP server"
+                              Style="{StaticResource DarkCheckBox}"
+                              Margin="0,10,0,0"
+                              Checked="OnHttpToggle"
+                              Unchecked="OnHttpToggle"/>
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,8,0,0">
+                        <TextBlock Text="Port" Style="{StaticResource Label}" VerticalAlignment="Center"/>
+                        <TextBox x:Name="HttpPortBox"
+                                 Width="64"
+                                 Text="8765"
+                                 Style="{StaticResource DarkTextBox}"
+                                 Margin="8,0,0,0"
+                                 VerticalAlignment="Center"
+                                 TextChanged="OnHttpPortChanged"/>
+                    </StackPanel>
+                    <TextBlock Grid.Row="4"
+                               Text="Serves LED control over http://127.0.0.1:PORT. Loopback only, no auth, off by default."
+                               Style="{StaticResource MicroLabel}"
+                               TextWrapping="Wrap"
+                               Margin="0,8,0,0"/>
+                </Grid>
+            </Border>
+        </StackPanel>
+
+        <Border Style="{StaticResource Card}" Grid.Column="2">
+            <Grid Margin="18">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Text="Event warnings" Style="{StaticResource SectionTitle}"/>
+
+                <TextBlock Grid.Row="1" Text="Search events" Style="{StaticResource Label}" Margin="0,10,0,4"/>
+                <TextBox Grid.Row="1"
+                         x:Name="EventSearch"
+                         Style="{StaticResource DarkTextBox}"
+                         Margin="0,0,0,10"/>
+
+                <ListBox Grid.Row="2"
+                         x:Name="EventList"
+                         Style="{StaticResource DarkListBox}"
+                         ItemContainerStyle="{StaticResource DarkListBoxItem}"
+                         SelectionChanged="OnEventSelected">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel>
+                                <TextBlock Text="{Binding Name}"
+                                           FontSize="12"
+                                           FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis"/>
+                                <TextBlock Text="{Binding TriggerCondition}"
+                                           FontSize="10"
+                                           Foreground="{StaticResource TextMuteBrush}"
+                                           Margin="0,2,0,0"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+
+                <Border Grid.Row="3"
+                        Background="{StaticResource CardAltBrush}"
+                        CornerRadius="10"
+                        Padding="12"
+                        Margin="0,12,0,0">
+                    <StackPanel x:Name="BindingEditor" IsEnabled="False">
+                        <TextBlock x:Name="BindingTitle"
+                                   Style="{StaticResource Label}"
+                                   Foreground="{StaticResource TextBrush}"
+                                   FontSize="12"
+                                   FontWeight="SemiBold"/>
+                        <TextBlock x:Name="BindingDesc"
+                                   Style="{StaticResource MicroLabel}"
+                                   TextWrapping="Wrap"
+                                   Margin="0,3,0,10"/>
+
+                        <TextBlock Text="Sound" Style="{StaticResource Label}" Margin="0,10,0,4"/>
+                        <ComboBox x:Name="AudioPresetBox"
+                                  Style="{StaticResource DarkComboBox}"
+                                  SelectionChanged="OnAudioPresetChanged">
+                            <ComboBoxItem Content="No audio"/>
+                            <ComboBoxItem Content="Low battery"/>
+                            <ComboBoxItem Content="Disconnect"/>
+                            <ComboBoxItem Content="Connect"/>
+                            <ComboBoxItem Content="Mic mute"/>
+                            <ComboBoxItem Content="Mic unmute"/>
+                            <ComboBoxItem Content="CH_Call_Ended"/>
+                            <ComboBoxItem Content="CH_Call_Rejected"/>
+                            <ComboBoxItem Content="CH_Connected"/>
+                            <ComboBoxItem Content="CH_Disconnected"/>
+                            <ComboBoxItem Content="CH_Enter_Pairing_Mode"/>
+                            <ComboBoxItem Content="CH_Incoming_Call"/>
+                            <ComboBoxItem Content="CH_Incoming_Call_Ended"/>
+                            <ComboBoxItem Content="CH_Low_Battery"/>
+                            <ComboBoxItem Content="CH_Power_OFF"/>
+                            <ComboBoxItem Content="CH_Power_ON"/>
+                            <ComboBoxItem Content="Doorbell"/>
+                            <ComboBoxItem Content="Double"/>
+                            <ComboBoxItem Content="EN_Call_Ended"/>
+                            <ComboBoxItem Content="EN_Call_Rejected"/>
+                            <ComboBoxItem Content="EN_Connected"/>
+                            <ComboBoxItem Content="EN_Disconnected"/>
+                            <ComboBoxItem Content="EN_Incoming_Call"/>
+                            <ComboBoxItem Content="EN_Incoming_Call_Ended"/>
+                            <ComboBoxItem Content="EN_Low_Battery"/>
+                            <ComboBoxItem Content="EN_Pairing"/>
+                            <ComboBoxItem Content="EN_Power_OFF"/>
+                            <ComboBoxItem Content="EN_Power_ON"/>
+                            <ComboBoxItem Content="Failed"/>
+                            <ComboBoxItem Content="Pressed"/>
+                            <ComboBoxItem Content="Successed"/>
+                            <ComboBoxItem Content="Twc_Incoming_Call"/>
+                            <ComboBoxItem Content="bton"/>
+                            <ComboBoxItem Content="doff"/>
+                            <ComboBoxItem Content="don"/>
+                            <ComboBoxItem Content="eq"/>
+                            <ComboBoxItem Content="eq2"/>
+                            <ComboBoxItem Content="eq3"/>
+                            <ComboBoxItem Content="eq4"/>
+                            <ComboBoxItem Content="hftd"/>
+                            <ComboBoxItem Content="hftd_x2"/>
+                            <ComboBoxItem Content="lb"/>
+                            <ComboBoxItem Content="lftd"/>
+                            <ComboBoxItem Content="mic_close_16kHz_16bit"/>
+                            <ComboBoxItem Content="mic_open_16kHz_16bit"/>
+                            <ComboBoxItem Content="moff"/>
+                            <ComboBoxItem Content="mon"/>
+                            <ComboBoxItem Content="not_connected_16k_16bit"/>
+                            <ComboBoxItem Content="poff"/>
+                            <ComboBoxItem Content="pon"/>
+                            <ComboBoxItem Content="soff"/>
+                            <ComboBoxItem Content="son"/>
+                        </ComboBox>
+                        <TextBlock Text="Volume" Style="{StaticResource Label}" Margin="0,10,0,4"/>
+                        <DockPanel Margin="0,0,0,0">
+                            <TextBlock x:Name="VolumeValue"
+                                       DockPanel.Dock="Right"
+                                       Style="{StaticResource MicroLabel}"
+                                       VerticalAlignment="Center"
+                                       Margin="8,0,0,0"/>
+                            <Slider x:Name="VolumeSlider"
+                                    Minimum="0"
+                                    Maximum="100"
+                                    Value="60"
+                                    Margin="12,0,0,0"/>
+                        </DockPanel>
+                        <TextBlock Text="Custom sound file" Style="{StaticResource Label}" Margin="0,10,0,4"/>
+                        <DockPanel Margin="0,0,0,0">
+                            <Button DockPanel.Dock="Right"
+                                    Content="Browse&#x2026;"
+                                    Style="{StaticResource DarkButton}"
+                                    Margin="8,0,0,0"
+                                    Click="OnBrowseAudio"/>
+                            <TextBox x:Name="CustomAudioPath"
+                                     Style="{StaticResource DarkTextBox}"
+                                     FontSize="11"
+                                     TextChanged="OnCustomPathChanged"/>
+                        </DockPanel>
+
+                        <CheckBox x:Name="ToastCheck"
+                                  Content="Tray toast"
+                                  Style="{StaticResource DarkCheckBox}"
+                                  Margin="0,10,0,0"
+                                  Checked="OnToastChanged"
+                                  Unchecked="OnToastChanged"/>
+
+                        <TextBlock Text="LED color on event" Style="{StaticResource Label}" Margin="0,12,0,0"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <CheckBox x:Name="Led0Enable"
+                                      Content="Earcups"
+                                      Style="{StaticResource DarkCheckBox}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,3,8,0"
+                                      Checked="OnLedToggleChanged"
+                                      Unchecked="OnLedToggleChanged"/>
+                            <local:ColorPicker x:Name="BindingLed0" IsEnabled="False"/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                            <CheckBox x:Name="Led1Enable"
+                                      Content="Mic"
+                                      Style="{StaticResource DarkCheckBox}"
+                                      VerticalAlignment="Top"
+                                      Margin="0,3,8,0"
+                                      Checked="OnLedToggleChanged"
+                                      Unchecked="OnLedToggleChanged"/>
+                            <local:ColorPicker x:Name="BindingLed1" IsEnabled="False"/>
+                        </StackPanel>
+
+                        <Button Content="Preview sound"
+                                Style="{StaticResource DarkButton}"
+                                Margin="0,12,0,0"
+                                HorizontalAlignment="Stretch"
+                                Click="OnPreviewClick"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Border>
+        </Grid>
+    </Grid>
+</Window>

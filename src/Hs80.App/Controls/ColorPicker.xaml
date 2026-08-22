@@ -1,0 +1,46 @@
+<UserControl x:Class="Hs80.App.Controls.ColorPicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <Style x:Key="SwatchButton" TargetType="Button">
+            <Setter Property="Width" Value="20"/>
+            <Setter Property="Height" Value="20"/>
+            <Setter Property="Margin" Value="0,0,6,6"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Bd"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="4">
+                            <ContentPresenter/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+    <StackPanel>
+        <DockPanel>
+            <Border x:Name="SwatchBox"
+                    DockPanel.Dock="Right"
+                    Width="30" Height="22"
+                    CornerRadius="5"
+                    BorderThickness="1"
+                    BorderBrush="{StaticResource HairlineBrush}"/>
+            <TextBox x:Name="HexBox"
+                     Style="{StaticResource DarkTextBox}"
+                     FontSize="11"
+                     TextChanged="OnHexChanged"/>
+        </DockPanel>
+        <WrapPanel x:Name="PalettePanel" Margin="0,6,0,0"/>
+    </StackPanel>
+</UserControl>
