@@ -8,6 +8,10 @@
   <i>LED control · battery &amp; ETA · firmware sound warnings · tray · 33 MB idle</i>
 </p>
 
+<p align="center">
+  <img src="Hs80.App/Assets/app_screenshot.png" alt="HS80 MAX Control screenshot" width="800"/>
+</p>
+
 # HS80 MAX Control
 
 A lightweight Windows desktop app for the Corsair HS80 MAX wireless headset. No iCUE, no bloat, no cloud, no telemetry. Just the headset, controlled directly over its USB dongle.

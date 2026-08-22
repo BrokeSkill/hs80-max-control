@@ -695,7 +695,7 @@ public partial class MainWindow : Window
 
     private void OnSmtcSessionChanged(GlobalSystemMediaTransportControlsSessionManager sender, CurrentSessionChangedEventArgs args)
     {
-        AttachSession(sender.GetCurrentSession());
+        _ = Dispatcher.InvokeAsync(() => AttachSession(sender.GetCurrentSession()));
     }
 
     private void AttachSession(GlobalSystemMediaTransportControlsSession? session)
@@ -713,7 +713,7 @@ public partial class MainWindow : Window
 
     private void OnSmtcPropsChanged(GlobalSystemMediaTransportControlsSession sender, MediaPropertiesChangedEventArgs args)
     {
-        _ = RefreshMediaAsync();
+        _ = Dispatcher.InvokeAsync(() => _ = RefreshMediaAsync());
     }
 
     private async Task RefreshMediaAsync()
