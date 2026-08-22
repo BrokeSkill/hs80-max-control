@@ -39,17 +39,17 @@ The app speaks the dongle's HID control protocol directly (iface 4, usage page 0
 
 Requires .NET 10 SDK on Windows:
 
-    dotnet publish src/Hs80.App/Hs80.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
+    dotnet publish Hs80.App/Hs80.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o out
 
 The exe lands in `out/Hs80.App.exe`. No runtime install needed.
 
 ## Layout
 
-- `src/Hs80.Core` - protocol layer, LED controller, battery reader, event poller, ETA, config
-- `src/Hs80.Audio` - NAudio playback, preset catalog
-- `src/Hs80.Http` - loopback LED/battery HTTP server
-- `src/Hs80.App` - WPF shell
-- `src/Hs80.App/Assets` - the 46 firmware voice prompts + icons
+- `Hs80.Core` - protocol layer, LED controller, battery reader, event poller, ETA, config
+- `Hs80.Audio` - NAudio playback, preset catalog
+- `Hs80.Http` - loopback LED/battery HTTP server
+- `Hs80.App` - WPF shell
+- `Hs80.App/Assets` - the 46 firmware voice prompts + icons
 
 ## License
 
