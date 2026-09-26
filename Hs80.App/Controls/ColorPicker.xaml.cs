@@ -32,6 +32,7 @@ public partial class ColorPicker : System.Windows.Controls.UserControl
         ("slate", Color.FromRgb(0x7F, 0x8C, 0x8D)),
         ("navy", Color.FromRgb(0x34, 0x49, 0x5E)),
         ("near-black", Color.FromRgb(0x15, 0x15, 0x15)),
+        ("black", Color.FromRgb(0x00, 0x00, 0x00)),
     };
 
     private bool _syncing;

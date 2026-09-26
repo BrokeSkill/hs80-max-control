@@ -68,8 +68,18 @@
                 <TextBlock Text="Earcups &#xB7; LED0" Style="{StaticResource Label}" Margin="0,0,0,4"/>
                 <local:ColorPicker x:Name="EarcupsPicker"/>
 
-                <TextBlock Text="Mic tip &#xB7; LED1" Style="{StaticResource Label}" Margin="0,12,0,4"/>
+                <TextBlock Text="Mic tip &#xB7; LED1 (live)" Style="{StaticResource Label}" Margin="0,12,0,4"/>
                 <local:ColorPicker x:Name="MicPicker"/>
+
+                <CheckBox x:Name="MicFollowMuteCheck"
+                          Content="Follow mute (boom lever)"
+                          Style="{StaticResource DarkCheckBox}"
+                          Margin="0,10,0,0"
+                          Checked="OnMicFollowMuteChanged"
+                          Unchecked="OnMicFollowMuteChanged"/>
+
+                <TextBlock Text="Mic tip &#xB7; muted" Style="{StaticResource Label}" Margin="0,10,0,4"/>
+                <local:ColorPicker x:Name="MicMutedPicker" IsEnabled="False"/>
 
                 <TextBlock Text="Brightness" Style="{StaticResource Label}" Margin="0,14,0,4"/>
                 <DockPanel>

@@ -40,6 +40,7 @@ public partial class MainWindow : Window
     private bool _reading;
     private bool _exiting;
     private bool _editorLoading;
+    private bool _ledsOff;
     private TrayIcon? _tray;
     private GlobalSystemMediaTransportControlsSessionManager? _smtcMgr;
     private GlobalSystemMediaTransportControlsSession? _smtcSession;
@@ -184,9 +185,27 @@ public partial class MainWindow : Window
     private void LoadLastColors()
     {
         var last = App.Config.Data.Presets.FirstOrDefault(p => p.Name == LastMarker);
-        if (last == null) return;
-        EarcupsPicker.SelectedColor = RgbToColor(last.EarcupsRgb);
-        MicPicker.SelectedColor = RgbToColor(last.MicRgb);
+        if (last != null)
+        {
+            EarcupsPicker.SelectedColor = RgbToColor(last.EarcupsRgb);
+            MicPicker.SelectedColor = RgbToColor(last.MicRgb);
+        }
+        MicFollowMuteCheck.IsChecked = App.Config.Data.MicFollowsMute;
+        MicMutedPicker.SelectedColor = RgbToColor(App.Config.Data.MicMutedRgb);
+        MicMutedPicker.IsEnabled = App.Config.Data.MicFollowsMute;
+    }
+
+    private void OnMicFollowMuteChanged(object sender, RoutedEventArgs e)
+    {
+        var on = MicFollowMuteCheck.IsChecked == true;
+        MicMutedPicker.IsEnabled = on;
+        App.Config.Data.MicFollowsMute = on;
+        App.Config.Save();
+    }
+
+    private int[] EffectiveMic(int[] liveMic)
+    {
+        return MicTip.Resolve(App.Config.Data.MicFollowsMute, App.Poller?.MicMutedState, liveMic, App.Config.Data.MicMutedRgb);
     }
 
     private void RestoreLastColorToHw()
@@ -206,7 +225,8 @@ public partial class MainWindow : Window
     private void ApplyLed(int[] ear, int[] mic)
     {
         if (ear.Length < 3 || mic.Length < 3) return;
-        var ok = App.Led?.SetColor((byte)ear[0], (byte)ear[1], (byte)ear[2], (byte)mic[0], (byte)mic[1], (byte)mic[2]) ?? false;
+        var sendMic = EffectiveMic(mic);
+        var ok = App.Led?.SetColor((byte)ear[0], (byte)ear[1], (byte)ear[2], (byte)sendMic[0], (byte)sendMic[1], (byte)sendMic[2]) ?? false;
         if (ok) StoreLast(ear, mic);
     }
 
@@ -237,14 +257,21 @@ public partial class MainWindow : Window
         var ear = EarcupsPicker.SelectedColor;
         var mic = MicPicker.SelectedColor;
         var brightness = (int)BrightnessSlider.Value;
+        App.Config.Data.MicFollowsMute = MicFollowMuteCheck.IsChecked == true;
+        App.Config.Data.MicMutedRgb = ColorToRgb(MicMutedPicker.SelectedColor);
+        App.Config.Save();
+        _ledsOff = false;
         _ = Task.Run(() =>
         {
-            var ok = App.Led?.SetColor((byte)ear.R, (byte)ear.G, (byte)ear.B, (byte)mic.R, (byte)mic.G, (byte)mic.B) ?? false;
+            var earRgb = new[] { (int)ear.R, (int)ear.G, (int)ear.B };
+            var micRgb = new[] { (int)mic.R, (int)mic.G, (int)mic.B };
+            var sendMic = EffectiveMic(micRgb);
+            var ok = App.Led?.SetColor((byte)earRgb[0], (byte)earRgb[1], (byte)earRgb[2], (byte)sendMic[0], (byte)sendMic[1], (byte)sendMic[2]) ?? false;
             var b = App.Led?.SetBrightness(brightness) ?? false;
             Dispatcher.InvokeAsync(() =>
             {
                 ApplyStatus.Text = !ok ? "FAILED" : "APPLIED";
-                if (ok) StoreLast(new[] { (int)ear.R, (int)ear.G, (int)ear.B }, new[] { (int)mic.R, (int)mic.G, (int)mic.B });
+                if (ok) StoreLast(earRgb, micRgb);
             });
         });
     }
@@ -289,6 +316,11 @@ public partial class MainWindow : Window
         Led1Enable.Unchecked += (_, _) => OnLedToggleChanged();
         BindingLed0.ColorCommitted += () => SaveBinding();
         BindingLed1.ColorCommitted += () => SaveBinding();
+        MicMutedPicker.ColorCommitted += () =>
+        {
+            App.Config.Data.MicMutedRgb = ColorToRgb(MicMutedPicker.SelectedColor);
+            App.Config.Save();
+        };
         VolumeSlider.ValueChanged += (_, _) =>
         {
             VolumeValue.Text = ((int)VolumeSlider.Value) + "%";
@@ -429,6 +461,15 @@ public partial class MainWindow : Window
                 MicText.Text = "MIC LIVE";
             });
             FireEvent(EventKind.MicUnmuted);
+        };
+        poller.MicStateChanged += (_, _) =>
+        {
+            Dispatcher.InvokeAsync(() =>
+            {
+                if (_ledsOff || !App.Config.Data.MicFollowsMute) return;
+                var c = CurrentColors();
+                ApplyLed(c.ear, c.mic);
+            });
         };
         poller.Start();
     }
@@ -667,10 +708,15 @@ public partial class MainWindow : Window
         _tray.HideWindow = () => Hide();
         _tray.LedOn = () =>
         {
+            _ledsOff = false;
             var c = CurrentColors();
             ApplyLed(c.ear, c.mic);
         };
-        _tray.LedOff = () => App.Led?.SetColor(0, 0, 0, 0, 0, 0);
+        _tray.LedOff = () =>
+        {
+            _ledsOff = true;
+            App.Led?.SetColor(0, 0, 0, 0, 0, 0);
+        };
         _tray.ExitApp = () =>
         {
             _exiting = true;
