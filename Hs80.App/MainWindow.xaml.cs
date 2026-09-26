@@ -225,9 +225,15 @@ public partial class MainWindow : Window
     private void ApplyLed(int[] ear, int[] mic)
     {
         if (ear.Length < 3 || mic.Length < 3) return;
-        var sendMic = EffectiveMic(mic);
-        var ok = App.Led?.SetColor((byte)ear[0], (byte)ear[1], (byte)ear[2], (byte)sendMic[0], (byte)sendMic[1], (byte)sendMic[2]) ?? false;
+        var ok = SendLed(ear, mic);
         if (ok) StoreLast(ear, mic);
+    }
+
+    private bool SendLed(int[] ear, int[] mic)
+    {
+        if (ear.Length < 3 || mic.Length < 3) return false;
+        var sendMic = EffectiveMic(mic);
+        return App.Led?.SetColor((byte)ear[0], (byte)ear[1], (byte)ear[2], (byte)sendMic[0], (byte)sendMic[1], (byte)sendMic[2]) ?? false;
     }
 
     private void StoreLast(int[] ear, int[] mic)
@@ -467,8 +473,9 @@ public partial class MainWindow : Window
             Dispatcher.InvokeAsync(() =>
             {
                 if (_ledsOff || !App.Config.Data.MicFollowsMute) return;
-                var c = CurrentColors();
-                ApplyLed(c.ear, c.mic);
+                var last = App.Config.Data.Presets.FirstOrDefault(p => p.Name == LastMarker);
+                if (last == null) return;
+                SendLed(last.EarcupsRgb, last.MicRgb);
             });
         };
         poller.Start();
@@ -522,7 +529,7 @@ public partial class MainWindow : Window
     {
         var ear = a.LedColorEarcups ?? LastRgb(EarcupsPicker.SelectedColor);
         var mic = a.LedColorMic ?? LastRgb(MicPicker.SelectedColor);
-        ApplyLed(ear, mic);
+        SendLed(ear, mic);
     }
 
     private static int[] LastRgb(Color c)
