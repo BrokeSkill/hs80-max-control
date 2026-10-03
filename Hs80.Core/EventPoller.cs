@@ -29,6 +29,9 @@ public class EventPoller : IDisposable
     public event EventHandler? HeadsetDisconnected;
     public event EventHandler? MicMuted;
     public event EventHandler? MicUnmuted;
+    public event EventHandler<bool>? MicStateChanged;
+
+    public bool? MicMutedState => _mic;
 
     public EventPoller(Hs80Device device, int lowThreshold = 20, int criticalThreshold = 10, TimeSpan? interval = null)
     {
@@ -169,10 +172,13 @@ public class EventPoller : IDisposable
         if (mic == _mic) return;
         var prev = _mic;
         _mic = mic;
+        MicStateChanged?.Invoke(this, mic.Value);
         if (prev == null) return;
         if (mic.Value) Fire(MicMuted);
         else Fire(MicUnmuted);
     }
+
+    internal void TickMicForTest() => DiffMic(ReadMicMuted());
 
     private static void Fire(EventHandler? handler)
     {

@@ -18,6 +18,8 @@ public sealed class ConfigData
     public int HttpPort { get; set; } = 8765;
     public bool HttpEnabled { get; set; }
     public bool StartWithWindows { get; set; }
+    public bool MicFollowsMute { get; set; }
+    public int[] MicMutedRgb { get; set; } = { 255, 0, 0 };
 }
 
 public sealed class ConfigStore
