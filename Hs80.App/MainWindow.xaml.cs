@@ -45,6 +45,8 @@ public partial class MainWindow : Window
     private GlobalSystemMediaTransportControlsSessionManager? _smtcMgr;
     private GlobalSystemMediaTransportControlsSession? _smtcSession;
     private LedHttpServer? _http;
+    private readonly DispatcherTimer _applyTimer;
+    private bool _applying;
 
     public MainWindow()
     {
@@ -54,6 +56,9 @@ public partial class MainWindow : Window
         WireEditorEvents();
         WirePoller();
         SetupTray();
+        _applyTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(180) };
+        _applyTimer.Tick += (_, _) => { _applyTimer.Stop(); ApplyNow(); };
+        WireLiveApply();
         _tick = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _tick.Tick += OnTick;
         _tick.Start();
@@ -61,11 +66,80 @@ public partial class MainWindow : Window
         Loaded += OnLoaded;
     }
 
+    private static string InterfaceVersion()
+    {
+        var asm = System.Reflection.Assembly.GetEntryAssembly() ?? System.Reflection.Assembly.GetExecutingAssembly();
+        var info = asm.GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+            .FirstOrDefault()?.InformationalVersion;
+        if (!string.IsNullOrWhiteSpace(info)) return info.Split('+')[0];
+        return asm.GetName().Version?.ToString(3) ?? "0.0.0";
+    }
+
+    private void OnNavChecked(object sender, RoutedEventArgs e)
+    {
+        if (PaneLights == null || PaneSounds == null || PaneSystem == null) return;
+        PaneLights.Visibility = NavLights.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        PaneSounds.Visibility = NavSounds.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+        PaneSystem.Visibility = NavSystem.IsChecked == true ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    private void OnMaximizeClick(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
+
+    private void WireLiveApply()
+    {
+        EarcupsPicker.ColorCommitted += ScheduleApply;
+        MicPicker.ColorCommitted += ScheduleApply;
+        MicMutedPicker.ColorCommitted += ScheduleApply;
+    }
+
+    private void ScheduleApply()
+    {
+        if (_applyTimer == null) return;
+        _applyTimer.Stop();
+        _applyTimer.Start();
+    }
+
+    private void ApplyNow()
+    {
+        if (_applying) return;
+        _applying = true;
+        var ear = EarcupsPicker.SelectedColor;
+        var mic = MicPicker.SelectedColor;
+        var brightness = (int)BrightnessSlider.Value;
+        App.Config.Data.MicFollowsMute = MicFollowMuteCheck.IsChecked == true;
+        App.Config.Data.MicMutedRgb = ColorToRgb(MicMutedPicker.SelectedColor);
+        App.Config.Save();
+        _ledsOff = false;
+        var earRgb = new[] { (int)ear.R, (int)ear.G, (int)ear.B };
+        var micRgb = new[] { (int)mic.R, (int)mic.G, (int)mic.B };
+        _ = Task.Run(() =>
+        {
+            var sendMic = EffectiveMic(micRgb);
+            var ok = App.Led?.SetColor((byte)earRgb[0], (byte)earRgb[1], (byte)earRgb[2], (byte)sendMic[0], (byte)sendMic[1], (byte)sendMic[2]) ?? false;
+            var b = App.Led?.SetBrightness(brightness) ?? false;
+            Dispatcher.InvokeAsync(() =>
+            {
+                _applying = false;
+                ApplyStatus.Text = ok && b ? "Saved" : "Write failed";
+                if (ok) StoreLast(earRgb, micRgb);
+            });
+        });
+    }
+
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         RestoreLastColorToHw();
         RunHwConfirm();
         EventList.SelectedIndex = 0;
+        if (App.StartPane.Equals("sounds", StringComparison.OrdinalIgnoreCase)) NavSounds.IsChecked = true;
+        else if (App.StartPane.Equals("system", StringComparison.OrdinalIgnoreCase)) NavSystem.IsChecked = true;
+        var version = InterfaceVersion();
+        VersionText.Text = "Interface " + version;
+        BuildVersionText.Text = version;
         HttpPortBox.Text = App.Config.Data.HttpPort.ToString();
         HttpToggle.IsChecked = App.Config.Data.HttpEnabled;
         StartupCheck.IsChecked = RunKey.IsSet();
@@ -84,11 +158,11 @@ public partial class MainWindow : Window
         {
             server.Start();
             _http = server;
-            DevStateText.Text = $"HTTP :{port}";
+            DevStateText.Text = $"HTTP on :{port}";
         }
         catch
         {
-            DevStateText.Text = "HTTP FAILED";
+            DevStateText.Text = "HTTP failed to start";
         }
     }
 
@@ -96,7 +170,7 @@ public partial class MainWindow : Window
     {
         _http?.Stop();
         _http = null;
-        DevStateText.Text = App.Device == null ? "DONGLE OFFLINE" : "DONGLE OK";
+        DevStateText.Text = App.Device == null ? "Dongle offline" : "Dongle ok";
     }
 
     private void OnStartupToggle(object sender, RoutedEventArgs e)
@@ -201,6 +275,7 @@ public partial class MainWindow : Window
         MicMutedPicker.IsEnabled = on;
         App.Config.Data.MicFollowsMute = on;
         App.Config.Save();
+        ScheduleApply();
     }
 
     private int[] EffectiveMic(int[] liveMic)
@@ -284,7 +359,9 @@ public partial class MainWindow : Window
 
     private void OnBrightnessValue(object sender, RoutedPropertyChangedEventArgs<double> e)
     {
+        if (BrightnessValue == null || _applyTimer == null) return;
         BrightnessValue.Text = ((int)e.NewValue).ToString();
+        ScheduleApply();
     }
 
     private void OnBrightnessDrag(object sender, DragCompletedEventArgs e)
@@ -295,19 +372,6 @@ public partial class MainWindow : Window
     private void BuildEventList()
     {
         EventList.ItemsSource = _catalog;
-        EventSearch.TextChanged += (_, _) => ApplyEventFilter();
-    }
-
-    private void ApplyEventFilter()
-    {
-        var q = EventSearch.Text.Trim();
-        EventList.ItemsSource = q.Length == 0
-            ? _catalog
-            : _catalog
-                .Where(c => c.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
-                    || c.Description.Contains(q, StringComparison.OrdinalIgnoreCase)
-                    || c.TriggerCondition.Contains(q, StringComparison.OrdinalIgnoreCase))
-                .ToList();
     }
 
     private void WireEditorEvents()
@@ -372,7 +436,7 @@ public partial class MainWindow : Window
         AudioPresetBox.SelectedIndex = action == null ? 0 : (int)action.AudioPreset;
         CustomAudioPath.Text = action?.CustomAudioPath ?? "";
         ToastCheck.IsChecked = action?.Toast ?? false;
-        VolumeSlider.Value = (action?.Volume ?? 0.6) * 100;
+        VolumeSlider.Value = (action?.Volume ?? 0.15) * 100;
         VolumeValue.Text = ((int)VolumeSlider.Value) + "%";
         Led0Enable.IsChecked = action?.LedColorEarcups != null;
         BindingLed0.IsEnabled = Led0Enable.IsChecked == true;
@@ -381,12 +445,15 @@ public partial class MainWindow : Window
         BindingLed1.IsEnabled = Led1Enable.IsChecked == true;
         if (action?.LedColorMic != null) BindingLed1.SelectedColor = RgbToColor(action.LedColorMic);
         BindingEditor.IsEnabled = true;
-        _editorLoading = false;
+        // combo/slider notifications can arrive after this method returns; keep the guard up
+        // until the dispatcher has drained them, or the old editor state gets saved onto the new event
+        Dispatcher.BeginInvoke(new Action(() => _editorLoading = false), DispatcherPriority.Background);
     }
 
     private void SaveBinding()
     {
         if (_editorLoading) return;
+        if (BindingEditor == null || !BindingEditor.IsEnabled) return;
         if (EventList.SelectedItem is not EventCatalogEntry entry) return;
         var bindings = App.Config.Data.Bindings;
         var binding = bindings.FirstOrDefault(b => b.Event == entry.Kind);
@@ -455,7 +522,7 @@ public partial class MainWindow : Window
             Dispatcher.InvokeAsync(() =>
             {
                 MicDot.Fill = BadBrush;
-                MicText.Text = "MIC MUTED";
+                MicText.Text = "Mic muted";
             });
             FireEvent(EventKind.MicMuted);
         };
@@ -464,7 +531,7 @@ public partial class MainWindow : Window
             Dispatcher.InvokeAsync(() =>
             {
                 MicDot.Fill = GoodBrush;
-                MicText.Text = "MIC LIVE";
+                MicText.Text = "Mic live";
             });
             FireEvent(EventKind.MicUnmuted);
         };
@@ -627,10 +694,10 @@ public partial class MainWindow : Window
         ChargeState.Text = "--";
         EtaText.Text = "ETA --";
         MicDot.Fill = DimBrush;
-        MicText.Text = "MIC --";
+        MicText.Text = "--";
         LinkDot.Fill = DimBrush;
-        LinkText.Text = "LINK --";
-        DevStateText.Text = App.Device == null ? "DONGLE OFFLINE" : "SCANNING";
+        LinkText.Text = "--";
+        DevStateText.Text = App.Device == null ? "Dongle offline" : "Scanning";
         _tray?.SetBattery(null, null);
     }
 
@@ -651,16 +718,16 @@ public partial class MainWindow : Window
         }
         ChargeState.Text = charge switch
         {
-            0 => "DISCHARGING",
-            1 => "CHARGING",
-            2 => "FULL",
-            _ => charge == 3 ? "ERROR" : "--",
+            0 => "Discharging",
+            1 => "Charging",
+            2 => pct is >= 95 ? "Full" : "On charge",
+            _ => charge == 3 ? "Error" : "--",
         };
         MicDot.Fill = mic == null ? DimBrush : mic.Value ? BadBrush : GoodBrush;
-        MicText.Text = mic == null ? "MIC --" : mic.Value ? "MIC MUTED" : "MIC LIVE";
+        MicText.Text = mic == null ? "--" : mic.Value ? "Mic muted" : "Mic live";
         LinkDot.Fill = link == null ? DimBrush : link.Value ? GoodBrush : DimBrush;
-        LinkText.Text = link == null ? "LINK --" : link.Value ? "LINK UP" : "LINK DOWN";
-        DevStateText.Text = pct == null ? "SCANNING" : "DONGLE OK";
+        LinkText.Text = link == null ? "--" : link.Value ? "Connected" : "Disconnected";
+        DevStateText.Text = pct == null ? "Scanning" : "Dongle ok";
         _tray?.SetBattery(pct.HasValue ? (int)Math.Round(pct.Value) : null, charge);
     }
 

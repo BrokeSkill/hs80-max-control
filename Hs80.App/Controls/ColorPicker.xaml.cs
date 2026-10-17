@@ -13,10 +13,11 @@ public partial class ColorPicker : System.Windows.Controls.UserControl
 {
     public static readonly DependencyProperty SelectedColorProperty = DependencyProperty.Register(
         nameof(SelectedColor), typeof(Color), typeof(ColorPicker),
-        new PropertyMetadata(Color.FromRgb(245, 166, 35), OnColorChanged));
+        new PropertyMetadata(Color.FromRgb(0x4F, 0xD1, 0xA5), OnColorChanged));
 
     private static readonly (string Name, Color Color)[] Palette =
     {
+        ("mint", Color.FromRgb(0x4F, 0xD1, 0xA5)),
         ("amber", Color.FromRgb(0xF5, 0xA6, 0x23)),
         ("red", Color.FromRgb(0xE7, 0x4C, 0x3C)),
         ("orange", Color.FromRgb(0xE6, 0x7E, 0x22)),

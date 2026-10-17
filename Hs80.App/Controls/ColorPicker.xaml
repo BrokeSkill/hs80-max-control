@@ -3,9 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <UserControl.Resources>
         <Style x:Key="SwatchButton" TargetType="Button">
-            <Setter Property="Width" Value="20"/>
-            <Setter Property="Height" Value="20"/>
-            <Setter Property="Margin" Value="0,0,6,6"/>
+            <Setter Property="Width" Value="16"/>
+            <Setter Property="Height" Value="16"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Template">
@@ -15,7 +15,7 @@
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="4">
+                                CornerRadius="2">
                             <ContentPresenter/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -28,19 +28,20 @@
             </Setter>
         </Style>
     </UserControl.Resources>
-    <StackPanel>
-        <DockPanel>
-            <Border x:Name="SwatchBox"
-                    DockPanel.Dock="Right"
-                    Width="30" Height="22"
-                    CornerRadius="5"
-                    BorderThickness="1"
-                    BorderBrush="{StaticResource HairlineBrush}"/>
-            <TextBox x:Name="HexBox"
-                     Style="{StaticResource DarkTextBox}"
-                     FontSize="11"
-                     TextChanged="OnHexChanged"/>
-        </DockPanel>
-        <WrapPanel x:Name="PalettePanel" Margin="0,6,0,0"/>
+    <StackPanel Orientation="Horizontal">
+        <Border x:Name="SwatchBox"
+                Width="26" Height="26"
+                CornerRadius="3"
+                BorderThickness="1"
+                BorderBrush="{StaticResource HairlineBrush}"
+                VerticalAlignment="Center"/>
+        <TextBox x:Name="HexBox"
+                 Style="{StaticResource DarkTextBox}"
+                 FontFamily="Cascadia Mono, Consolas"
+                 FontSize="12"
+                 Width="96" MinHeight="28" VerticalAlignment="Center"
+                 Margin="8,0,10,0"
+                 TextChanged="OnHexChanged"/>
+        <WrapPanel x:Name="PalettePanel" Orientation="Horizontal" VerticalAlignment="Center"/>
     </StackPanel>
 </UserControl>

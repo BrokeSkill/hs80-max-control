@@ -1,38 +1,45 @@
 <p align="center">
-  <img src="Hs80.App/Assets/app_banner.png" alt="HS80 MAX Control" width="96"/>
+  <img src="Hs80.App/Assets/app_banner.png" alt="HS80 MAX Control" width="128"/>
 </p>
 
 <p align="center">
   <b>HS80 MAX Control</b><br/>
   Your headset, without iCUE.<br/>
-  <i>LED control · battery &amp; ETA · firmware sound warnings · tray · 33 MB idle</i>
+  <i>LED control · battery and ETA · firmware sound warnings · tray</i>
 </p>
 
 <p align="center">
-  <img src="Hs80.App/Assets/app_screenshot.png" alt="HS80 MAX Control screenshot" width="800"/>
+  <img src="Hs80.App/Assets/app_screenshot.png" alt="HS80 MAX Control, Lights tab" width="900"/>
 </p>
 
 # HS80 MAX Control
 
-A lightweight Windows desktop app for the Corsair HS80 MAX wireless headset. No iCUE, no bloat, no cloud, no telemetry. Just the headset, controlled directly over its USB dongle.
+A lightweight Windows app for the Corsair HS80 MAX wireless headset. No iCUE, no bloat, no cloud, no telemetry. It talks to the headset directly over its USB dongle.
 
 ## What it does
 
-- **LED control** - set independent colors for the earcups and the mic tip, with brightness. (The last applied color is restored on launch and re-asserted automatically when the headset reconnects after standby.)
-- **Event warnings** - pick any of the headset's own firmware sounds (all 46 voice prompts and tones, dumped live from the device) and bind them to events: battery low/critical, charging started/complete, headset connect/disconnect, mic mute/unmute. Per-event volume, custom WAV/MP3 files, tray toasts, and LED color reactions are all available.
-- **Battery card** - live percentage from the headset meter, charge state, ETA until drained or full (rolling 30-minute fit over measured history, self-calibrating)
-- **Now playing** - title, artist, album, and thumbnail from the Windows media session, read-only.
-- **System tray** - minimize/close to tray so warnings keep working; tray icon reflects charge level; quick LED on/off from the tray menu.
-- **Start with Windows** - optional, via a plain HKCU Run key. No admin needed.
-- **Developer mode** - optional loopback HTTP server (127.0.0.1, off by default) for scripting LED colors and reading battery status. (Useful for OpenRGB etc.)
+- **Lights** - one row per LED zone: earcups, mic tip, and the mic tip colour used while muted. Pick from the swatch strip or type a hex value. Writes go to the headset as you change things, coalesced at 150 ms so dragging a slider does not flood the dongle.
+- **Sounds** - bind any of the headset's 46 firmware prompts to an event: battery low and critical, charging started and complete, headset connected and disconnected, mic mute and unmute. Per-event volume, custom WAV or MP3, tray toast, and LED colour reactions. The last applied colour is restored when the headset reconnects.
+- **Battery** - live percentage from the headset meter, charge state, and ETA until empty or full, from a rolling 30 minute fit over measured history.
+- **Now playing** - title and artist from the Windows media session, read-only.
+- **System** - start with Windows, loopback HTTP server for scripting, and the interface version stamped from the release the build came from.
+- **Tray** - minimize or close to the tray so warnings keep working. The tray icon reflects charge level, and the menu toggles the LEDs.
+
+## Roadmap
+
+- [x] Design Overhaul - implemented in 1.1.1
+- [ ] Custom themes
+- [ ] Equalizer
+
+Feature requests are wanted. Open an issue with the behaviour you want and why.
 
 ## Why not iCUE
 
-iCUE is heavy. This app is one self-contained process with an idle footprint around 33 MB private working set, no child processes, and no background services. It targets a single 2-second poll tick for battery and an instant 150 ms mic check; nothing else runs when idle. The published exe is a single self-contained file with no runtime install.
+iCUE is heavy. This app is one process with no child processes, no background service, and no runtime install. It polls the battery every 2 seconds and the mic every 150 ms; nothing else runs when idle. The published exe is a single self-contained file.
 
 ## How it talks to the headset
 
-The app speaks the dongle's HID control protocol directly (iface 4, usage page 0xFF42). The battery meter is read from the headset child property 0x0F (raw LE16 / 10), which is the live value. LED writes use the verified open-write-close handle sequence on resource 0x22, with the render mode held in software so colors persist.
+The app speaks the dongle's HID control protocol directly (iface 4, usage page 0xFF42). The battery meter is read from the headset child property 0x0F (raw LE16 / 10), which is the live value. LED writes use the verified open-write-close handle sequence on resource 0x22, with the render mode held in software so colours persist.
 
 ## Credits
 
@@ -56,8 +63,8 @@ The exe lands in `out/Hs80.App.exe`. No runtime install needed.
 - `Hs80.Core` - protocol layer, LED controller, battery reader, event poller, ETA, config
 - `Hs80.Audio` - NAudio playback, preset catalog
 - `Hs80.Http` - loopback LED/battery HTTP server
-- `Hs80.App` - WPF shell
-- `Hs80.App/Assets` - the 46 firmware voice prompts + icons
+- `Hs80.App` - WPF shell: rail with three panes, one shared colour control
+- `Hs80.App/Assets` - the 46 firmware voice prompts, icons, screenshots
 
 ## License
 

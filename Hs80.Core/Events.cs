@@ -75,7 +75,7 @@ public sealed class BindingAction
     public AudioPreset AudioPreset { get; set; } = AudioPreset.None;
     public string? CustomAudioPath { get; set; }
     public bool Toast { get; set; }
-    public double Volume { get; set; } = 0.6;
+    public double Volume { get; set; } = 0.15;
     public int[]? LedColorEarcups { get; set; }
     public int[]? LedColorMic { get; set; }
 }

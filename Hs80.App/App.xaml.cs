@@ -14,10 +14,12 @@ public partial class App : System.Windows.Application
     public static LedController? Led;
     public static BatteryReader? Battery;
     public static EventPoller? Poller;
+    public static string StartPane = "";
 
     private void OnStartup(object sender, StartupEventArgs e)
     {
         Environment.CurrentDirectory = AppContext.BaseDirectory;
+        StartPane = e.Args.FirstOrDefault(a => a.StartsWith("--pane=", StringComparison.OrdinalIgnoreCase))?.Split('=')[1] ?? "";
         Config.Load();
         EnsureAssets();
         SeedBindings();
@@ -49,8 +51,16 @@ public partial class App : System.Windows.Application
             Battery = new BatteryReader(dev);
             Poller = new EventPoller(dev, Config.Data.LowBatteryThreshold, Config.Data.CriticalBatteryThreshold);
         }
-        catch
+        catch (Exception ex)
         {
+            try
+            {
+                var dir = Path.GetDirectoryName(Config.FilePath);
+                if (!string.IsNullOrEmpty(dir)) File.WriteAllText(Path.Combine(dir, "startup-error.log"), ex.ToString());
+            }
+            catch
+            {
+            }
             Device?.Dispose();
             Device = null;
             Led = null;
