@@ -28,6 +28,8 @@ A lightweight Windows app for the Corsair HS80 MAX wireless headset. No iCUE, no
 ## Roadmap
 
 - [x] Design Overhaul - implemented in 1.1.1
+- [ ] Auto-updater
+- [ ] Plugins - load small extensions without rebuilding the app
 - [ ] Custom themes
 - [ ] Equalizer
 

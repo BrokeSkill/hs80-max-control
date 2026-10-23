@@ -15,6 +15,7 @@ public class EventPoller : IDisposable
     private bool _connected;
     private bool _connectedKnown;
     private double? _pct;
+    private int _nullStreak;
     private bool _lowFired;
     private bool _criticalFired;
     private int? _charge;
@@ -84,6 +85,8 @@ public class EventPoller : IDisposable
         var pct = ReadBatteryPercent();
         if (pct == null)
         {
+            _nullStreak++;
+            if (_nullStreak < 3) return;
             if (_connectedKnown && _connected) Fire(HeadsetDisconnected);
             _connected = false;
             _connectedKnown = true;
@@ -94,6 +97,7 @@ public class EventPoller : IDisposable
             _criticalFired = false;
             return;
         }
+        _nullStreak = 0;
         var wasConnected = _connectedKnown && _connected;
         var known = _connectedKnown;
         _connected = true;

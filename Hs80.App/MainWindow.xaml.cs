@@ -38,6 +38,7 @@ public partial class MainWindow : Window
     private readonly List<EventCatalogEntry> _catalog = Hs80.Core.EventCatalog.All.ToList();
     private readonly DispatcherTimer _tick;
     private bool _reading;
+    private int? _lastCharge;
     private bool _exiting;
     private bool _editorLoading;
     private bool _ledsOff;
@@ -676,6 +677,7 @@ public partial class MainWindow : Window
                 }
                 pct = App.Battery.ReadLivePercent();
                 charge = App.Battery.ReadChargeState();
+                if (!charge.HasValue) charge = _lastCharge;
             }
             catch
             {
@@ -705,6 +707,7 @@ public partial class MainWindow : Window
     {
         if (pct.HasValue)
         {
+            if (charge.HasValue) _lastCharge = charge;
             BatteryPercent.Text = $"{pct.Value:0}%";
             App.History.Add(DateTime.UtcNow, pct.Value);
             UpdateSparkline();
